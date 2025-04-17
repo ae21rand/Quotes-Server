@@ -7,6 +7,7 @@ const app = express(); // create the app
 const port = 3000; // define the port
 
 app.use(express.json()); // ^^ use express.json()
+//const multer = require("multer");
 
 let categories = ['successQuotes', 'perseveranceQuotes', 'happinessQuotes'];
 
@@ -47,75 +48,77 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
-//
-
 app.get('/quotebook/categories', (req, res) => {
     res.status(200).json(categories);
 })
 
+function getRandIndex (array) {
+    return Math.floor(Math.random() * array.length);
+}
+
 app.get('/quotebook/quote/:category', (req, res) => {
     const category = req.params.category;
+    console.log(category);
 
     if (!category) {
         res.status(400).send('Error: no category provided.');
     }
 
-    const quotes = {
-        successQuotes,
-        perseveranceQuotes,
-        happinessQuotes
-    };
+    const randindexs = getRandIndex(successQuotes);
+    console.log(randindexs);
 
-    const categoryQuotes = quotes[category];
-
-    if (!categoryQuotes) {
-        return res.status(404).send('Error: Category not found.');
+    console.log(category === "success");
+    if (category === "success") {
+        console.log(successQuotes[randindexs]);
+        res.status(200).send(successQuotes[randindexs]);
     }
 
-    // get random index & random quote
-    const randIndex = Math.floor(Math.random() * categoryQuotes.length);
-    const randQuote = categoryQuotes[randIndex];
+    const randindexp = Math.floor(Math.random() + 1 * perseveranceQuotes.length)
 
-    // json response of quote
-    res.status(200).json(randQuote);
+    if (category === "perserverance") {
+        res.status(200).send(perseveranceQuotes[randindexp]);
+    }
+
+    const randindexh = Math.floor(Math.random() + 1 * happinessQuotes.length)
+
+    if (category === "happiness") {
+        res.status(200).send(happinessQuotes[randindexh]);
+    }
 })
 
+// to support all post methods
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
+//app.use(multer().none());
 
 app.post('/quotebook/quote/new', (req, res) => {
-    const { category, quote, author } = req.body;
+    const newquote = req.body.quote;
+    const newauthor = req.body.author;
+    const newcategory = req.body.category;
 
-    // if parameter is missing
-    if (!category || !quote || !author) {
-        return res.status(400).json({ error: 'invalid or insufficient user input' })
+    const newquoteadd = {quote: newquote, author: newauthor}
+
+    if (!newquote || !newauthor || !newcategory) {
+        res.status(400).send("Invalid or insufficient user input");
     }
 
-    // existing categories array from above
-    const quotes = {
-        successQuotes,
-        perseveranceQuotes,
-        happinessQuotes
-    };
+    if (newcategory === "success") {
+        successQuotes.push(newquoteadd);
+    } else if (newcategory === "perseverance") {
+        perseveranceQuotes.push(newquoteadd);
+    } else if (newcategory === "happiness") {
+        happinessQuotes.push(newquoteadd);
+    } else {
+        res.status(400).send("Unknown category");
+    } //yay this works :)
 
-    // if category is not found
-    if (!quotes[category]) {
-        return res.status(400).json({ error: 'Category not found.' });
-    }
-
-    // create a new quote object to be added
-    const newQuote = {
-        quote,
-        author
-    };
-
-    // add new quote to correct category  array
-    quotes[category].push(newQuote);
-
-    res.status(201).json({ message: 'Success!' });
+    res.status(200).send("Success!");
 });
 
+const PORT = process.env.port || 8000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+})
 
 
 
