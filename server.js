@@ -100,8 +100,8 @@ app.post('/quotebook/quote/new', (req, res) => {
 
     if (!newquote || !newauthor || !newcategory) {
         res.status(400).send("Invalid or insufficient user input");
-    }
-
+    }   
+     
     if (newcategory === "success") {
         successQuotes.push(newquoteadd);
     } else if (newcategory === "perseverance") {
